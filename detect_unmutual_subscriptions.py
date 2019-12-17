@@ -6,20 +6,21 @@ import urllib
 USER_ID = 1111  # user_id from curl
 COOKIES = 'cookie: bla bla'  # cookies from curl
 
+FOLLOWERS_HASH = 'c76146de99bb02f6415203be841dd25a'
+FOLLOWING_HASH = 'd04b0a864b4b54837c0d870b0e77e076'
+
+base_url = 'https://www.instagram.com/graphql/query/?query_hash={0}&variables={1}'
+variables = {"id": USER_ID,
+             "include_reel": True,
+             "fetch_mutual": False,
+             "first": 24}
+headers = {
+    'cookie': COOKIES
+}
+
 
 def get_users(query_hash, edge_name):
-    base_url = 'https://www.instagram.com/graphql/query/?query_hash={0}&variables={1}'
-    variables = {"id": USER_ID,
-                 "include_reel": True,
-                 "fetch_mutual": False,
-                 "first": 24}
-
     url_main = base_url.format(query_hash, urllib.quote(json.dumps(variables)))
-
-    headers = {
-        'cookie': COOKIES
-    }
-
     response = json.loads(requests.get(url_main, headers=headers).content)
 
     edge_follow = response.get('data').get('user').get(edge_name)
@@ -47,16 +48,13 @@ def get_users(query_hash, edge_name):
     return following
 
 
-following_hash = 'd04b0a864b4b54837c0d870b0e77e076'
-followers_hash = 'c76146de99bb02f6415203be841dd25a'
 users_for_unsubscribtion = []
 
-i_follow = get_users(following_hash, 'edge_follow')
-followers = get_users(followers_hash, 'edge_followed_by')
+i_follow = get_users(FOLLOWING_HASH, 'edge_follow')
+followers = get_users(FOLLOWERS_HASH, 'edge_followed_by')
 
 for f in i_follow:
     if f not in followers:
         users_for_unsubscribtion.append(f)
 
 print users_for_unsubscribtion
-
